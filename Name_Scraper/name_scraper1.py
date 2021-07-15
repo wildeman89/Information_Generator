@@ -18,8 +18,18 @@ def main():
         soup = soupify(site)
         site.close()
         headers = get_table_headers(soup)
-        for header in headers:
-            print(header.get_text(), end=" ")
+        ''' 
+        Because of the way the table is, there are two headers above the
+        main four headers needed: Males, Females.
+        Will find an elogent way to deal with this, but for now, going to
+        pop the first two columns and move on. Will save them in a variable
+        incase they can be used later.
+        '''
+        _top_headers = [headers.pop(0), headers.pop(0)]
+        rows = get_table_rows(soup)
+        rows = clean_table_rows(rows)
+        for row in rows:
+            print(row)
         print()
 
 # Functions
@@ -43,6 +53,30 @@ def get_table_headers( soup ):
     Table header tags in html are <th>.
     """
     return soup.find_all("th")
+
+def get_table_rows( soup ):
+    """ This function will get the table rows. This should be the ranks of 
+    the names, the names, and the number of people named with those names.
+    The html tags for table rows: <tr>
+    """
+    return soup.find_all("tr")
+
+def clean_table_rows( row_list ):
+    ''' This function is going to take the rows from the table, and
+    remove the unnecessary bits. The last row in the table is not needed,
+    going to remove it. Should be identifiable by "colspan=4". Only td to
+    have that attribute.
+    '''
+    clean_rows = []
+    for row in row_list:
+        temp_row = []
+        for td in row.find_all("td"):
+            if 'colspan' in td.attrs.keys():
+                continue
+            temp_row.append(td.get_text())
+        if len(temp_row) > 1:
+            clean_rows.append(temp_row)
+    return clean_rows
 
 
 # calling main
